@@ -43,11 +43,14 @@ class ChampionshipsHandler:
         
         dao = PartDAO()
         championship_id = dao.createChampionShip(name, winner_team, winner_year)
-        if not championship_id:
-            return jsonify("Server Error"), 500
+        if name == "" or winner_team == "" or winner_year == "":
+            return jsonify("Missing Parameters"), 400
         else:
-            json["id"] = championship_id
-            return jsonify(json), 201
+            if not championship_id:
+                return jsonify("Server Error"), 500
+            else:
+                json["id"] = championship_id
+                return jsonify(json), 201
         
         
     def deleteChampionshipById(self, id):
