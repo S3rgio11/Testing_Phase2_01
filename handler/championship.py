@@ -67,13 +67,17 @@ class ChampionshipsHandler:
         dao = PartDAO()
         updated = dao.updateChampionship(id, name, winner_team, winner_year)
         
-        if name == "" or winner_team == "" or winner_year == "":
+        if name == "":
             return jsonify("Missing Parameters"), 400
         else:
-            if updated:
+            if updated == 0:
+                return jsonify(f"Record with id={id}, does not exist"), 404
+            elif updated == 1:
                 championship = dao.getChampionshipForUpdate(id)
                 result = self.map_to_dict(championship)
                 return jsonify(result), 200
+            elif updated == 2:
+                return jsonify("Missing Parameters"), 400
             else:
                 return jsonify("Not Found"), 404
         

@@ -2,6 +2,7 @@
 
 from config.pgconfig import hostname, database, username, pwd, port_id
 import psycopg2
+from psycopg2 import errors
 
 class PartDAO():
     def __init__(self):
@@ -52,15 +53,30 @@ class PartDAO():
         pre_query = "SELECT 1 FROM championships WHERE id = %s"
         cursor.execute(pre_query, (id,))
         exists = cursor.fetchone()
+        
+        state_variable = 0   
+        
+        # If state_value is 0 it means that record does not exist.
+        # If state_value is 1 it means that record exists and it will be updated.
+        # If state_value is 2 it means that record exists but it cannot be updated because of missing parameters.
+        
         if exists:
-            query = "UPDATE championships SET name = %s, winner_team = %s, winner_year = %s WHERE id = %s"
-            cursor.execute(query, (name, winner_team, winner_year, id))
-            self.conn.commit()
+            
+            try:
+                query = "UPDATE championships SET name = %s, winner_team = %s, winner_year = %s WHERE id = %s"
+                cursor.execute(query, (name, winner_team, winner_year, id))
+                self.conn.commit()
+                state_variable = 1
+                
+            except errors.InvalidTextRepresentation:
+                state_variable= 2
+                self.conn.rollback()
+                
             cursor.close()
-            return True
+            return state_variable
         else:
             cursor.close()
-            return False
+            return state_variable
         
     def getChampionshipForUpdate(self, id):
         cursor = self.conn.cursor()
